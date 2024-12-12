@@ -32,7 +32,7 @@ App.use('/uploads', Express.static(path.join(__dirname, 'uploads')));
 
 const connectDB = async () => {
     try {
-      await Mongoose.connect('mongodb://localhost:27017/superassistant', {
+      await Mongoose.connect('mongodb+srv://Phani2612:2612@cluster0.nxfzz84.mongodb.net/Superassistant?retryWrites=true&w=majority&appName=Cluster0', {
         useNewUrlParser: true,
         useUnifiedTopology: true,
       });
@@ -271,11 +271,17 @@ App.get('/api/forms/:OID', async (req, res) => {
 
 
 
-App.post('/api/save-score' , async(req,res)=>{
-
-
+App.post('/api/save-score', async (req, res) => {
   try {
     const { score, User_Responses, User_Question, U_Email, U_Phone } = req.body;
+
+    console.log(User_Responses)
+    // Transform User_Responses to match the schema
+    const transformedResponses = User_Responses.map((response) => ({
+      cat_response: response.cat_response || null,
+      comp_response: response.cloze_response || null, // Default value
+      cloze_response: response.comp_response || null, // Default value
+    }));
 
     // Validate data if necessary
     if (!score || !User_Responses || !User_Question || !U_Email || !U_Phone) {
@@ -285,8 +291,8 @@ App.post('/api/save-score' , async(req,res)=>{
     // Create a new response document
     const newResponse = new Response_model({
       score,
-      responses: User_Responses, // Store the responses
-      questions: User_Question,  // Store the questions
+      responses: transformedResponses, // Use transformed responses
+      questions: User_Question,
       U_Email,
       U_Phone,
     });
@@ -300,9 +306,7 @@ App.post('/api/save-score' , async(req,res)=>{
     console.error('Error saving score:', error);
     res.status(500).json({ error: 'Failed to save score, questions, and responses' });
   }
-
-
-})
+});
 
 
 
